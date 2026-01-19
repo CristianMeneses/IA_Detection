@@ -55,11 +55,23 @@ class ModelLoader:
                 print(f"Usando modelo local: {model_path_to_use}")
             else:
                 # Fallback: intentar descargar si el archivo local no existe
+                print(f"Modelo local no encontrado en {self.model_path}, intentando descargar...")
                 MODEL_DOWNLOAD_URL = "https://huggingface.co/cmeneses99/IA_Detection/resolve/main/plant_species.tflite?download=true"
-                local_model_path = os.path.join("/tmp", os.path.basename(self.model_path))
-                self._download_model_if_not_exists(MODEL_DOWNLOAD_URL, local_model_path)
-                model_path_to_use = local_model_path
-                print(f"Usando modelo descargado: {model_path_to_use}")
+
+                # Intentar usar /tmp primero, si no existe o falla, usar el directorio actual
+                try:
+                    os.makedirs("/tmp", exist_ok=True)
+                    local_model_path = os.path.join("/tmp", os.path.basename(self.model_path))
+                    self._download_model_if_not_exists(MODEL_DOWNLOAD_URL, local_model_path)
+                    model_path_to_use = local_model_path
+                    print(f"Usando modelo descargado en /tmp: {model_path_to_use}")
+                except (OSError, PermissionError) as tmp_error:
+                    print(f"No se pudo usar /tmp: {tmp_error}, intentando directorio actual...")
+                    # Fallback: usar el directorio actual del proyecto
+                    local_model_path = os.path.join(os.getcwd(), os.path.basename(self.model_path))
+                    self._download_model_if_not_exists(MODEL_DOWNLOAD_URL, local_model_path)
+                    model_path_to_use = local_model_path
+                    print(f"Usando modelo descargado en directorio actual: {model_path_to_use}")
 
             self.interpreter = tf.lite.Interpreter(model_path=model_path_to_use)
             self.interpreter.allocate_tensors()
