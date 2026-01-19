@@ -48,18 +48,20 @@ class ModelLoader:
     def _load_model(self):
         """Carga el modelo TensorFlow Lite."""
         try:
-            # Define la URL de descarga del modelo
-            # IMPORTANTE: REEMPLAZA ESTA URL CON LA URL DE DESCARGA DIRECTA DE TU MODELO
-            MODEL_DOWNLOAD_URL = "https://huggingface.co/cmeneses99/IA_Detection/resolve/main/plant_species.tflite?download=true" 
-            
-            # Path local para guardar el modelo (usando /tmp/ en Replit es buena práctica)
-            # Asegúrate de que el directorio /tmp exista, aunque en Replit suele estar disponible
-            local_model_path = os.path.join("/tmp", os.path.basename(self.model_path))
-            
-            # Descargar el modelo si no existe
-            self._download_model_if_not_exists(MODEL_DOWNLOAD_URL, local_model_path)
+            # Usar el modelo local directamente (ya está en el repositorio)
+            # En Vercel, los archivos del repositorio están disponibles en el directorio raíz
+            if os.path.exists(self.model_path):
+                model_path_to_use = self.model_path
+                print(f"Usando modelo local: {model_path_to_use}")
+            else:
+                # Fallback: intentar descargar si el archivo local no existe
+                MODEL_DOWNLOAD_URL = "https://huggingface.co/cmeneses99/IA_Detection/resolve/main/plant_species.tflite?download=true"
+                local_model_path = os.path.join("/tmp", os.path.basename(self.model_path))
+                self._download_model_if_not_exists(MODEL_DOWNLOAD_URL, local_model_path)
+                model_path_to_use = local_model_path
+                print(f"Usando modelo descargado: {model_path_to_use}")
 
-            self.interpreter = tf.lite.Interpreter(model_path=local_model_path)
+            self.interpreter = tf.lite.Interpreter(model_path=model_path_to_use)
             self.interpreter.allocate_tensors()
             
             # Obtener detalles de entrada y salida
