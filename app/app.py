@@ -476,7 +476,7 @@ def predict_endpoint():
         return jsonify({
             'success': True,
             'class': class_name,
-            'confidence': f"{confidence:.4f}%"
+            'confidence': f"{confidence:.3f}%"
         })
         
     except ValueError as e:
@@ -504,7 +504,7 @@ def health_check():
         'model_loaded': True
     })
 
-
+@app.route('/', methods=['GET'])
 @app.route('/home', methods=['GET'])
 def home():
     """Endpoint de validación visible desde el navegador."""
