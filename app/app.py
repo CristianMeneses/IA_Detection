@@ -4,8 +4,8 @@ API Flask para reconocimiento de imágenes con TensorFlow Lite.
 
 from flask import Flask, request, jsonify
 import os
-from image_utils import load_image_from_url, load_image_from_file, preprocess_image
-from model_loader import load_model, predict, is_model_loaded, get_model_info
+from .image_utils import load_image_from_url, load_image_from_file, preprocess_image
+from .model_loader import load_model, predict, is_model_loaded, get_model_info
 import json
 
 app = Flask(__name__)
@@ -29,7 +29,9 @@ def predict_class_name(class_idx):
     labels.json tiene el formato: {"0": ..., "1": ..., ...}
     """
     try:
-        with open('labels.json', 'r', encoding='utf-8') as f:
+        # Buscar labels.json en la misma carpeta que app.py
+        labels_path = os.path.join(os.path.dirname(__file__), 'labels.json')
+        with open(labels_path, 'r', encoding='utf-8') as f:
             labels = json.load(f)
         clase_nombre = labels[str(class_idx)]
         return clase_nombre
@@ -496,14 +498,6 @@ def predict_endpoint():
         }), 500
 
 
-@app.route('/health', methods=['GET'])
-def health_check():
-    """Endpoint de verificación de salud."""
-    return jsonify({
-        'status': 'healthy',
-        'model_loaded': True
-    })
-
 @app.route('/', methods=['GET'])
 @app.route('/home', methods=['GET'])
 def home():
@@ -642,14 +636,10 @@ def home():
                 </div>
                 <div class="endpoint">
                     <span class="endpoint-method">GET</span>
-                    <strong>/health</strong> - Verificación de salud (JSON)
-                </div>
-                <div class="endpoint">
-                    <span class="endpoint-method">GET</span>
                     <strong>/predict</strong> - Página de predicción (HTML)
                 </div>
                 <div class="endpoint">
-                    <span class="endpoint-method">POST</span>
+                    <span class="endpoint-method" style="background: #4CAF50;">POST</span>
                     <strong>/predict</strong> - Predicción de imágenes (tflite)
                 </div>
             </div>
